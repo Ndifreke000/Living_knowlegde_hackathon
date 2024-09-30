@@ -5,29 +5,37 @@ import img3 from "../assets/sent.png";
 import img4 from "../assets/pencil-edit-02.png";
 import { Link } from "react-router-dom";
 
-const TwinHome = () => {
-  const [userInput, setUserInput] = useState('');
-  const [response, setResponse] = useState('');
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  const nodeID = "0x5022e298b9d6a347764e3130096b266590369c44"; // Your Node ID
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const nodeID = "0x5022e298b9d6a347764e3130096b266590369c44"; // Your Node ID
+  try {
+    const res = await fetch('https://llama.us.gaianet.network/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Node-ID': nodeID // Include Node ID in headers if required
+      },
+      body: JSON.stringify({
+        prompt: `You are a hybrid of Elon Musk and Warren Buffet and my personal revenue distribution assistant.\nUser: ${userInput}\n`, // Update prompt structure
+        max_tokens: 150, // Adjust as needed
+        temperature: 0.7 // Optional, adjust based on desired creativity
+      })
+    });
 
-    try {
-      const res = await fetch('https://llama.us.gaianet.network/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Node-ID': nodeID // Include Node ID in headers if required
-        },
-        body: JSON.stringify({
-          messages: [
-            { role: 'system', content: "You are a hybrid of Elon Musk and Warren Buffet and my personal revenue distribution assistant." },
-            { role: 'user', content: userInput }
-          ]
-        })
-      });
+    const data = await res.json();
+    if (res.ok) {
+      setResponse(data.choices[0].text); // Update this based on the actual response structure
+    } else {
+      console.error('Error:', data);
+      setResponse('Error fetching data. Please try again later.');
+    }
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    setResponse('Error fetching data. Please try again later.');
+  }
+};
 
       const data = await res.json();
       setResponse(data.choices[0].message.content); // Update this based on the actual response structure
