@@ -19,7 +19,7 @@ const handleSubmit = async (e) => {
       },
       body: JSON.stringify({
         prompt: `You are a hybrid of Elon Musk and Warren Buffet and my personal revenue distribution assistant.\nUser: ${userInput}\n`, // Update prompt structure
-        max_tokens: 150, // Adjust as needed
+        max_tokens: 9500, // Adjust as needed
         temperature: 0.7 // Optional, adjust based on desired creativity
       })
     });
