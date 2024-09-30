@@ -7,35 +7,50 @@ import { Link } from "react-router-dom";
 
 const TwinHome = () => {
   const [userInput, setUserInput] = useState('');
-  const [response, setResponse] = useState('');
+  const [conversationHistory, setConversationHistory] = useState([
+    { role: "assistant", content: "Hello! I'm Elun Gates, your hybrid AI assistant ready to give distribution advice." }
+  ]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const nodeID = "0x5022e298b9d6a347764e3130096b266590369c44"; // Your Node ID
+
+    // Add user input to conversation history
+    const newUserMessage = { role: "user", content: userInput };
+    const newConversationHistory = [...conversationHistory, newUserMessage];
+    setConversationHistory(newConversationHistory);
 
     try {
-      const res = await fetch('https://llama.us.gaianet.network/v1/chat/completions', {
+      const body = {
+        messages: [
+          { role: "system", content: "." },
+          ...newConversationHistory // Send the complete conversation history
+        ]
+      };
+
+      const res = await fetch('https://phi.us.gaianet.network/v1/chat/completions', {
         method: 'POST',
-        mode: 'no-cors', // Set request mode to no-cors
         headers: {
           'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Node-ID': nodeID
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          prompt: `You are a hybrid of Elon Musk and Warren Buffet and my personal revenue distribution assistant.\nUser: ${userInput}\n`,
-          max_tokens: 9500,
-          temperature: 0.7
-        })
+        body: JSON.stringify(body)
       });
 
-      // Since mode is set to 'no-cors', we cannot read the response.
-      // The following code may not work as expected due to this restriction.
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
       const data = await res.json();
-      setResponse(data.choices[0].text);
+      const aiMessage = data.choices[0].message.content;
+
+      // Add AI response to conversation history
+      const newAIMessage = { role: "Financial Advisor", content: aiMessage };
+      setConversationHistory([...newConversationHistory, newAIMessage]);
+      setUserInput(''); // Clear input after sending
     } catch (error) {
       console.error('Error fetching data:', error);
-      setResponse('Error fetching data. Please try again later.');
+      const errorMessage = { role: "system", content: 'Error fetching data. Please try again later.' };
+      setConversationHistory([...newConversationHistory, errorMessage]);
     }
   };
 
@@ -59,7 +74,7 @@ const TwinHome = () => {
 
       <section>
         <div style={{ marginTop: "5rem", textAlign: "center" }}>
-          <h1 style={{ fontWeight: "600", fontSize: "36px", color: "rgba(1,1,1,1,)" }}>Hello, There!</h1>
+          <h1 style={{ fontWeight: "600", fontSize: "36px", color: "rgba(1,1,1,1)" }}>Hello, There!</h1>
           <h2 style={{ fontWeight: "500", fontSize: "24px", color: "rgba(139, 139, 139, 1)" }}>How Can I Help You Today?</h2>
           <p style={{ flexDirection: "column", fontWeight: "400", fontSize: "14px", color: "rgba(98,98,98,1)" }}>
             Kariya uses the latest AI models & insights from our AI research database to produce evidence-based answers about human rights related to Gender Based Violence.
@@ -109,8 +124,15 @@ const TwinHome = () => {
               Ask
             </button>
           </form>
-          <div>
-            <p style={{ color: "black", marginTop: "10px" }}>{response}</p>
+          <div style={{ marginTop: "20px", maxHeight: "300px", overflowY: "auto", border: "1px solid rgba(217, 217, 217, 1)", borderRadius: "16px", padding: "10px", backgroundColor: "white" }}>
+            {conversationHistory.map((message, index) => (
+              <div key={index} style={{ marginBottom: "10px", textAlign: message.role === "user" ? "right" : "left" }}>
+                <strong style={{ color: message.role === "user" ? "blue" : "green" }}>{message.role === "user" ? "You:" : "Elun Gates:"}</strong>
+                <p style={{ display: "inline-block", padding: "5px", borderRadius: "12px", backgroundColor: message.role === "user" ? "rgba(230, 230, 255, 1)" : "rgba(210, 255, 210, 1)" }}>
+                  {message.content}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
